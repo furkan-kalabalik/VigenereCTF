@@ -1,23 +1,16 @@
 syntax = "proto3";
 
-service VigenereCTF {
-    rpc getFlag(Empty) returns (FlagResponse);
-    rpc encode(EncodeRequest) returns (EncodeResponse);
-    rpc hint(Empty) returns (HintResponse);
+service PasswordExport {
+    rpc getEncryptedPassword(Empty) returns (Password);
+    rpc hint1(Empty) returns (HintResponse);
+    rpc hint2(Empty) returns (HintResponse);
+    rpc hint3(Empty) returns (HintResponse);
 }
 
 message Empty {}
 
-message EncodeRequest {
-    string input = 1;
-}
-
-message EncodeResponse {
-    string encoded_output = 1;
-}
-
-message FlagResponse {
-    string flag = 1;
+message Password {
+    string password = 1;
 }
 
 message HintResponse {

@@ -7,7 +7,7 @@
 #include <grpcpp/server_builder.h>
 #include <grpcpp/ext/proto_server_reflection_plugin.h>
 
-class VigenereCTFService final : public VigenereCTF::Service
+class PasswordExportService final : public PasswordExport::Service
 {
 private:
     std::string m_secret_key;
@@ -44,10 +44,11 @@ private:
     }
 
 public:
-    VigenereCTFService(const std::string& secret_key, const std::string& flag);
-    grpc::Status getFlag(::grpc::ServerContext* context, const ::Empty* request, ::FlagResponse* response) override;
-    grpc::Status encode(::grpc::ServerContext* context, const ::EncodeRequest* request, ::EncodeResponse* response) override;
-    grpc::Status hint(::grpc::ServerContext* context, const ::Empty* request, ::HintResponse* response) override;
+    PasswordExportService(const std::string& secret_key, const std::string& flag);
+    virtual ::grpc::Status getEncryptedPassword(::grpc::ServerContext* context, const ::Empty* request, ::Password* response) override;
+    virtual ::grpc::Status hint1(::grpc::ServerContext* context, const ::Empty* request, ::HintResponse* response) override;
+    virtual ::grpc::Status hint2(::grpc::ServerContext* context, const ::Empty* request, ::HintResponse* response) override;
+    virtual ::grpc::Status hint3(::grpc::ServerContext* context, const ::Empty* request, ::HintResponse* response) override;
 };
 
 int main(int argc, char** argv)
@@ -55,7 +56,7 @@ int main(int argc, char** argv)
     grpc::ServerBuilder builder;
     builder.AddListeningPort(std::string(argv[1])+":"+std::string(argv[2]), grpc::InsecureServerCredentials());
 
-    VigenereCTFService my_service{argv[3], argv[4]};
+    PasswordExportService my_service{argv[3], argv[4]};
     builder.RegisterService(&my_service);
     grpc::EnableDefaultHealthCheckService(true);
     grpc::reflection::InitProtoReflectionServerBuilderPlugin();
@@ -64,25 +65,31 @@ int main(int argc, char** argv)
     server->Wait();
 }
 
-VigenereCTFService::VigenereCTFService(const std::string &secret_key, const std::string &flag)
+PasswordExportService::PasswordExportService(const std::string &secret_key, const std::string &flag)
     :m_secret_key{secret_key}, m_flag{flag}
 {
 }
 
-grpc::Status VigenereCTFService::getFlag(::grpc::ServerContext *context, const ::Empty *request, ::FlagResponse *response)
+grpc::Status PasswordExportService::getEncryptedPassword(::grpc::ServerContext* context, const ::Empty* request, ::Password* response)
 {
-    response->set_flag(encryption(m_flag));
+    response->set_password(encryption(m_flag));
     return grpc::Status();
 }
 
-grpc::Status VigenereCTFService::encode(::grpc::ServerContext *context, const ::EncodeRequest *request, ::EncodeResponse *response)
+grpc::Status PasswordExportService::hint1(::grpc::ServerContext *context, const ::Empty *request, ::HintResponse *response)
 {
-    response->set_encoded_output(encryption(request->input()));
+    response->set_hint("The Vigenere cipher is a polyalphabetic encryption algorithm invented by the French cryptologist Blaise de Vigenere in the 16th century");
     return grpc::Status();
 }
 
-grpc::Status VigenereCTFService::hint(::grpc::ServerContext *context, const ::Empty *request, ::HintResponse *response)
+grpc::Status PasswordExportService::hint2(::grpc::ServerContext *context, const ::Empty *request, ::HintResponse *response)
 {
-    response->set_hint("Looking for a substitution");
+    response->set_hint("Vigenere hates Kasiski");
+    return grpc::Status();
+}
+
+grpc::Status PasswordExportService::hint3(::grpc::ServerContext *context, const ::Empty *request, ::HintResponse *response)
+{
+    response->set_hint("English. Alphabet. How were the 'FLAG's in previous challanges?");
     return grpc::Status();
 }
